@@ -12,6 +12,8 @@
 
 (spec/def ::unqualified-symbol? (spec/and symbol? (complement qualified-symbol?)))
 
+(spec/def ::requires (spec/coll-of ::unqualified-symbol? :kind set?))
+
 (spec/def ::ns-aliases (spec/map-of ::unqualified-symbol? ::unqualified-symbol?))
 
 (spec/def ::correct-aliases ::ns-aliases)

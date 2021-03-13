@@ -18,8 +18,12 @@
   [^::kws/existing-filename filename
    ^::kws/state state
    acceptable-aliases-whitelist]
-  (let [[the-ns-name current-ns-aliases] (parsing/filename->aliases filename)
-        correct-ns-aliases (deriving/correct-ns-aliases-for the-ns-name current-ns-aliases state acceptable-aliases-whitelist)
+  (let [[the-ns-name current-ns-aliases requires] (parsing/parse-filename filename)
+        correct-ns-aliases (deriving/correct-ns-aliases-for the-ns-name
+                                                            current-ns-aliases
+                                                            requires
+                                                            state
+                                                            acceptable-aliases-whitelist)
         formatter (rewriting/node-formatter correct-ns-aliases)]
     (loop [current-node (zip/of-file filename)]
       (let [formatted-node (zip/postwalk current-node formatter)]

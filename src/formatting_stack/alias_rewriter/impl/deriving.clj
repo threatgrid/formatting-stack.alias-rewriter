@@ -63,6 +63,7 @@
   derivations [^::kws/unqualified-symbol? current-ns-name
                ^::kws/unqualified-symbol? the-ns-name
                ^::kws/ns-aliases current-ns-aliases
+               ^::kws/requires requires
                ^::kws/global-project-aliases global-project-aliases]
   (let [candidates (->> global-project-aliases
                         (filter (speced/fn [[k, ^set? v]]
@@ -85,10 +86,14 @@
                                                              (when (not= (get current-ns-aliases k)
                                                                          the-ns-name)
                                                                k)))
-                                                     set)]
+                                                     set)
+        required-unaliased (->> requires
+                                (remove (->> current-ns-aliases vals set))
+                                set)]
     (->> corpus
          (remove already-in-current-ns--and-inconsistent)
          (remove #{current-ns-name})
+         (remove required-unaliased)
          (vec))))
 
 (defn set-conj [coll x]
@@ -104,9 +109,10 @@ Updates `state` with the found value."
   [^::kws/unqualified-symbol? current-ns-name
    ^::kws/unqualified-symbol? the-ns-name
    ^::kws/ns-aliases current-ns-aliases
+   ^::kws/requires requires
    ^::kws/state state]
   (let [success? (atom false)]
-    (-> (for [d (derivations current-ns-name the-ns-name current-ns-aliases @state)
+    (-> (for [d (derivations current-ns-name the-ns-name current-ns-aliases requires @state)
               :while (not @success?)
               :let [v @state
                     contained? (contains? (get v d) the-ns-name)
@@ -121,6 +127,7 @@ Updates `state` with the found value."
 
 (speced/defn ^::kws/ns-aliases correct-ns-aliases-for [the-ns-name
                                                        ^::kws/ns-aliases current-ns-aliases
+                                                       ^::kws/requires requires
                                                        ^::kws/state state
                                                        acceptable-aliases-whitelist]
   (let [acceptable (merge-with into
@@ -130,6 +137,6 @@ Updates `state` with the found value."
           (comp (remove (fn [[k v]]
                           (linters.ns-aliases/acceptable-require-clause? acceptable [v :as k])))
                 (keep (fn [[k v]]
-                        (when-let [result (retrying-derivations the-ns-name v current-ns-aliases state)]
+                        (when-let [result (retrying-derivations the-ns-name v current-ns-aliases requires state)]
                           [k result]))))
           current-ns-aliases)))

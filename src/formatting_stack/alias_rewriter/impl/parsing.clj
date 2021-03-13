@@ -53,8 +53,9 @@
     @result))
 
 (speced/defn ^{::speced/spec (spec/cat ::kws/unqualified-symbol? ::kws/unqualified-symbol?
-                                       ::kws/ns-aliases          ::kws/ns-aliases)}
-  filename->aliases [^present-string? filename]
+                                       ::kws/ns-aliases          ::kws/ns-aliases
+                                       ::kws/requires            ::kws/requires)}
+  parse-filename [^present-string? filename]
   (let [decl (-> filename formatting-stack.util/read-ns-decl)
         the-ns-name (parse/name-from-ns-decl decl)
         aliases (if (find-ns the-ns-name)
@@ -67,4 +68,5 @@
            (map (fn [[k v]]
                   [k
                    (-> v str symbol)]))
-           aliases)]))
+           aliases)
+     (parse/deps-from-ns-decl decl)]))
