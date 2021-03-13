@@ -1,9 +1,9 @@
-(defproject formatting-stack.alias-rewriter "unreleased"
+(defproject threatgrid/formatting-stack.alias-rewriter "unreleased"
   ;; Please keep the dependencies sorted a-z.
   :dependencies [[com.nedap.staffing-solutions/speced.def "2.0.0"]
                  [com.stuartsierra/component "1.0.0"]
                  [formatting-stack "4.2.1"]
-                 [net.vemv/rewrite-clj "0.6.2" #_"https://git.io/fhhbQ"]
+                 [rewrite-clj "1.0.579-alpha"]
                  [org.clojure/clojure "1.10.1"]
                  [org.clojure/tools.namespace "1.0.0"]]
 

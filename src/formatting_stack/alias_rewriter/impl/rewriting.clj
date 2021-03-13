@@ -60,23 +60,23 @@
           (not= e new-val)
           (zip/replace new-val))))))
 
-(defn ensure-auto [x]
-  (let [s (some-> x str)]
-    (if-not (and s
-                 (string/starts-with? s ":")
-                 (not (string/starts-with? s "::")))
-      x
-      (str ":" s))))
-
 (speced/defn maybe-replace-ident [^::kws/node node
                                   ^{::speced/spec #{keyword symbol}} converter
                                   ^::kws/correct-aliases correct-ns-aliases]
   (let [e (zip/sexpr node)
         n (-> e namespace symbol)
+        ;; this defn was originally for the classic rewrite-clj API,
+        ;; which would turn the `::foo/bar` node into a `:foo/bar` sexpr.
+        ;; the new rewrite-clj turns it instead into `:??_foo_??/bar`. Process that:
+        n (-> n
+              str
+              (string/replace #"^\?\?_" "")
+              (string/replace #"_\?\?$" "")
+              symbol)
         corrected-ns (some-> correct-ns-aliases (get n) str)
         kw-converter? (#{keyword} converter)
         auto-kw? (and kw-converter?
-                      (->> node (into {}) :namespaced?))
+                      (->> node (into {}) :auto-resolved?))
         fix? (and corrected-ns
                   (if kw-converter?
                     auto-kw? ;; non-auto kws should never be renamed - it doesn't make sense
@@ -87,8 +87,7 @@
       (zip/replace (let [v (->> e name (converter corrected-ns))]
                      (cond-> v
                        true     node/coerce
-                       auto-kw? (assoc :namespaced?  true
-                                       :string-value (ensure-auto v))))))))
+                       auto-kw? (assoc :auto-resolved? true)))))))
 
 (defn node-formatter [correct-ns-aliases]
   (fn format-node [node]

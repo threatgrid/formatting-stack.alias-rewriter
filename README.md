@@ -9,7 +9,7 @@
 ## Installation
 
 ```clojure
-[formatting-stack/formatting-stack.alias-rewriter "unreleased"]
+[threatgrid/formatting-stack.alias-rewriter "unreleased"]
 ```
 
 ## ns organisation
