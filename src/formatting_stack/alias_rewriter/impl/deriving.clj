@@ -52,7 +52,8 @@
          (map symbol))))
 
 (speced/defn ^{::speced/spec (spec/coll-of ::kws/unqualified-symbol?)}
-  derivations [^::kws/unqualified-symbol? the-ns-name
+  derivations [^::kws/unqualified-symbol? current-ns-name
+               ^::kws/unqualified-symbol? the-ns-name
                ^::kws/ns-aliases current-ns-aliases
                ^::kws/global-project-aliases global-project-aliases]
   (let [candidates (->> global-project-aliases
@@ -73,6 +74,7 @@
                                                 (->> mapped-namespaces
                                                      (some (complement #{the-ns-name})))))))))))
          (remove already-in-current-ns)
+         (remove #{current-ns-name})
          (vec))))
 
 (defn set-conj [coll x]
@@ -85,11 +87,12 @@
   "Returns the first derived value that wasn't already taken, locally or globally.
 
 Updates `state` with the found value."
-  [^::kws/unqualified-symbol? the-ns-name
+  [^::kws/unqualified-symbol? current-ns-name
+   ^::kws/unqualified-symbol? the-ns-name
    ^::kws/ns-aliases current-ns-aliases
    ^::kws/state state]
   (let [success? (atom false)]
-    (-> (for [d (derivations the-ns-name current-ns-aliases @state)
+    (-> (for [d (derivations current-ns-name the-ns-name current-ns-aliases @state)
               :while (not @success?)
               :let [v @state
                     contained? (contains? (get v d) the-ns-name)
@@ -102,7 +105,8 @@ Updates `state` with the found value."
 
         first)))
 
-(speced/defn ^::kws/ns-aliases correct-ns-aliases-for [^::kws/ns-aliases current-ns-aliases
+(speced/defn ^::kws/ns-aliases correct-ns-aliases-for [the-ns-name
+                                                       ^::kws/ns-aliases current-ns-aliases
                                                        ^::kws/state state
                                                        acceptable-aliases-whitelist]
   (let [acceptable (merge-with into
@@ -112,6 +116,6 @@ Updates `state` with the found value."
           (comp (remove (fn [[k v]]
                           (linters.ns-aliases/acceptable-require-clause? acceptable [v :as k])))
                 (keep (fn [[k v]]
-                        (when-let [result (retrying-derivations v current-ns-aliases state)]
+                        (when-let [result (retrying-derivations the-ns-name v current-ns-aliases state)]
                           [k result]))))
           current-ns-aliases)))

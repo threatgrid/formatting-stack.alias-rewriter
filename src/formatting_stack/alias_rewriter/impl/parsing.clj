@@ -1,5 +1,6 @@
 (ns formatting-stack.alias-rewriter.impl.parsing
   (:require
+   [clojure.spec.alpha :as spec]
    [clojure.string :as string]
    [clojure.tools.namespace.parse :as parse]
    [clojure.walk :as walk]
@@ -51,7 +52,9 @@
                             x))))
     @result))
 
-(speced/defn ^::kws/ns-aliases filename->aliases [^present-string? filename]
+(speced/defn ^{::speced/spec (spec/cat ::kws/unqualified-symbol? ::kws/unqualified-symbol?
+                                       ::kws/ns-aliases          ::kws/ns-aliases)}
+  filename->aliases [^present-string? filename]
   (let [decl (-> filename formatting-stack.util/read-ns-decl)
         the-ns-name (parse/name-from-ns-decl decl)
         aliases (if (find-ns the-ns-name)
@@ -59,8 +62,9 @@
                   (-> the-ns-name the-ns ns-aliases)
                   ;; Fall back to parsing:
                   (ns-decl->ns-aliases decl))]
-    (into {}
-          (map (fn [[k v]]
-                 [k
-                  (-> v str symbol)]))
-          aliases)))
+    [the-ns-name
+     (into {}
+           (map (fn [[k v]]
+                  [k
+                   (-> v str symbol)]))
+           aliases)]))
