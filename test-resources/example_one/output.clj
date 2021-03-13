@@ -22,3 +22,7 @@
 jio/copy
 :jio/copy
 ::io/copy"
+
+#::{:copy 1} ;; (should not be replaced at all)
+#:jio{:copy 1} ;; (should not be replaced at all)
+#::io{:copy 1}

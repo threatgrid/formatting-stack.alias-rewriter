@@ -89,12 +89,33 @@
                        true     node/coerce
                        auto-kw? (assoc :auto-resolved? true)))))))
 
+(speced/defn maybe-replace-map-qualifier-node [^::kws/node node
+                                               ^::kws/correct-aliases correct-ns-aliases]
+  (let [maybe-q (-> node zip/down)
+        maybe-q-a (->> maybe-q (into {}))]
+    (if-not (and (-> maybe-q zip/tag #{:map-qualifier})
+                 (->> maybe-q-a :auto-resolved?))
+      node
+      (let [current (some-> maybe-q-a :prefix symbol)
+            correct (some-> correct-ns-aliases
+                            (get current)
+                            str)]
+        (cond-> maybe-q
+          (and current
+               correct
+               (not= correct current))
+          (zip/replace (node/map-qualifier-node true correct))
+
+          true
+          zip/up)))))
+
 (defn node-formatter [correct-ns-aliases]
   (fn format-node [node]
     (let [e (try
               (zip/sexpr node)
               (catch UnsupportedOperationException _))]
       (cond
+        (map? e)                    (maybe-replace-map-qualifier-node node correct-ns-aliases)
         ;; XXX also process comments
         (and (vector? e) ;; XXX should be `sequential?` after ensuring maybe-replace-ns-clause is inside a ns
              (->> e (some #{:as}))) (maybe-replace-ns-clause node correct-ns-aliases)
