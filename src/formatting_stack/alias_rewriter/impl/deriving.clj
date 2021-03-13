@@ -34,16 +34,24 @@
                                (sort alias-comparator))
         shorter-variations (->> longer-variations
                                 (mapcat (fn [the-ns-name]
-                                          (->> [#".api$"
-                                                #".core$"
-                                                "-clj"
-                                                "clj-"
-                                                "-cljs"
-                                                "cljs-"
-                                                "-clojure"
-                                                "clojure-"]
-                                               (map (fn [s]
-                                                      (-> the-ns-name (string/replace s "")))))))
+                                          (let [replacements [#".api$"
+                                                              #".core$"
+                                                              "-clj"
+                                                              "clj-"
+                                                              "-cljs"
+                                                              "cljs-"
+                                                              "-clojure"
+                                                              "clojure-"]
+                                                x (->> replacements
+                                                       (map (fn [s]
+                                                              (-> the-ns-name (string/replace s "")))))
+                                                ;; apply the replacements over the already-replaced strings:
+                                                y (->> replacements
+                                                       (mapcat (fn [s]
+                                                                 (->> x
+                                                                      (map (fn [inner]
+                                                                             (-> inner (string/replace s ""))))))))]
+                                            (into x y))))
                                 (sort alias-comparator)
                                 (vec))]
     (->> (into shorter-variations longer-variations)

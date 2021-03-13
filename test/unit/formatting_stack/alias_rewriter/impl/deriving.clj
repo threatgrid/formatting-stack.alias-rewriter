@@ -8,11 +8,12 @@
                           (is (= expected
                                  (sut/permutations input)))
                           true)
-    'foo          '(foo)
-    'foo.bar      '(bar foo.bar)
-    'foo.bar.baz  '(baz bar.baz foo.bar.baz)
-    'foo.core     '(foo foo.core)
-    'foo.bar.core '(bar foo.bar bar.core foo.bar.core)))
+    'foo             '(foo)
+    'foo.bar         '(bar foo.bar)
+    'foo.bar.baz     '(baz bar.baz foo.bar.baz)
+    'foo.core        '(foo foo.core)
+    'foo.bar.core    '(bar foo.bar bar.core foo.bar.core)
+    'base64-clj.core '(base64 base64-clj base64.core base64-clj.core)))
 
 (deftest derivations
   (are [desc the-ns-name current-ns-aliases project-aliases expected]
