@@ -62,18 +62,24 @@
         used-and-unambiguous (when (and (-> candidates count #{1})
                                         (-> candidates first second count #{1}))
                                (ffirst candidates))
-        already-in-current-ns (->> current-ns-aliases keys set)]
-    (->> (into (->> [used-and-unambiguous]
-                    (filterv some?))
-               (->> the-ns-name
-                    permutations
-                    (remove (speced/fn [^::kws/unqualified-symbol? s]
-                              (->> global-project-aliases
-                                   (some (fn [[alias mapped-namespaces]]
-                                           (and (= s alias)
-                                                (->> mapped-namespaces
-                                                     (some (complement #{the-ns-name})))))))))))
-         (remove already-in-current-ns)
+        corpus (into (->> [used-and-unambiguous]
+                          (filterv some?))
+                     (->> the-ns-name
+                          permutations
+                          (remove (speced/fn [^::kws/unqualified-symbol? s]
+                                    (->> global-project-aliases
+                                         (some (fn [[alias mapped-namespaces]]
+                                                 (and (= s alias)
+                                                      (->> mapped-namespaces
+                                                           (some (complement #{the-ns-name})))))))))))
+        already-in-current-ns--and-inconsistent (->> current-ns-aliases
+                                                     (keep (fn [[k v]]
+                                                             (when (not= (get current-ns-aliases k)
+                                                                         the-ns-name)
+                                                               k)))
+                                                     set)]
+    (->> corpus
+         (remove already-in-current-ns--and-inconsistent)
          (remove #{current-ns-name})
          (vec))))
 

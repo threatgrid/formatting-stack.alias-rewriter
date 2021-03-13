@@ -35,13 +35,22 @@
     'foo.core     {}                   '{quux #{foo.core}} '[quux foo foo.core]
 
     "Removes aliases already used in the current ns (part 1)"
-    'foo.core     '{foo bar}           '{quux #{foo.core}} '[quux foo.core]
+    'foo.core     '{foo bar}           {}                  '[foo.core]
 
     "Removes aliases already used in the current ns (part 2)"
-    'foo.core     '{quux bar}          '{quux #{foo.core}} '[foo foo.core]
+    'foo.core     '{foo bar}           '{quux #{foo.core}} '[quux foo.core]
 
     "Removes aliases already used in the current ns (part 3)"
+    'foo.core     '{quux bar}          '{quux #{foo.core}} '[foo foo.core]
+
+    "Removes aliases already used in the current ns (part 4)"
     'foo.core     '{foo.core bar}      '{quux #{foo.core}} '[quux foo]
+
+    "Doesn't remove aliases already used in the current ns if they are properly derived from the current namespace"
+    'foo.core     '{foo foo.core}      {}                  '[foo foo.core]
+
+    "Removes aliases already used in the current ns if they are not properly derived from the current namespace"
+    'foo.core     '{foo bar.core}      {}                  '[foo.core]
 
     "Never suggests an alias that is exactly equivalent to the current ns name"
     'sample.core  {}                   {}                  '[sample.core]))
